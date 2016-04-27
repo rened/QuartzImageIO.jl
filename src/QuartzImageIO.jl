@@ -278,10 +278,14 @@ function getblob(img::AbstractImage, format)
     # CGImageDestinationCreateWithData - TODO. But I couldn't figure out how
     # to get the length of the CFMutableData object. So I take the inefficient
     # route of saving the image to a temporary file for now.
-    @assert format == "png" || format == "public.png" # others not supported for now
-    temp_file = "/tmp/QuartzImageIO_temp.png"
-    save_(temp_file, img, "public.png")
-    readbytes(open(temp_file))
+    # @assert format == "png" || format == "public.png" # others not supported for now
+    filename = tempname()*"."*format
+    try
+        save_(filename, img, format)
+        return read(filename)
+    finally
+        rm(filename)
+    end
 end
 
 @deprecate writemime_(io::IO, ::MIME"image/png", img::AbstractImage) save(Stream(format"PNG", io), img)
